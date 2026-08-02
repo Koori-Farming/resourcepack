@@ -3,8 +3,7 @@ name: Create Zip Release
 on:
   push:
     branches:
-      - main   # change if your default branch is different
-
+      - main
 permissions:
   contents: write
 
@@ -19,11 +18,19 @@ jobs:
         run: |
           zip -r "release-${{ github.sha }}.zip" . -x ".git/*"
 
+      - name: Compute SHA1 hash
+        id: hash
+        run: |
+          HASH=$(sha1sum "release-${{ github.sha }}.zip" | awk '{print $1}')
+          echo "sha1=$HASH" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: Build ${{ github.run_number }}
+          body: |
+            SHA1: ${{ steps.hash.outputs.sha1 }}
           files: release-${{ github.sha }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
