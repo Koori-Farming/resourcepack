@@ -1,0 +1,29 @@
+name: Create Zip Release
+
+on:
+  push:
+    branches:
+      - main   # change if your default branch is different
+
+permissions:
+  contents: write
+
+jobs:
+  zip-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create zip archive
+        run: |
+          zip -r "release-${{ github.sha }}.zip" . -x ".git/*"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          files: release-${{ github.sha }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
